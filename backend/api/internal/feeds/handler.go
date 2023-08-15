@@ -72,12 +72,6 @@ func (h Handler) HandleGet(c echo.Context) error {
 			return err
 		}
 	} else if format == formatAtom {
-		contentType = echo.MIMEApplicationXMLCharsetUTF8
-		content, err = feed.ToAtom()
-		if err != nil {
-			return err
-		}
-	} else if format == formatAtom {
 		contentType = echo.MIMEApplicationXML
 		content, err = feed.ToAtom()
 		if err != nil {
