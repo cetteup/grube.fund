@@ -156,6 +156,10 @@ func (g *Generator) fetch(ctx context.Context, brands []string, categoryIDs []st
 		}
 
 		if resp.StatusCode != http.StatusOK {
+			// API returns 422 when offset exceeds max value (seems to max return 990 postings)
+			if resp.StatusCode == http.StatusUnprocessableEntity {
+				return postings, nil
+			}
 			return nil, fmt.Errorf("failed to fetch postings, received unexpected status code: %d (%s)", resp.StatusCode, resp.Status)
 		}
 
