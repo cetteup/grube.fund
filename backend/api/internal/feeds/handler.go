@@ -22,7 +22,7 @@ const (
 )
 
 type Generator interface {
-	BuildFeed(ctx context.Context, brands []string, categoryIDs []string, keyword string) (*feeds.Feed, error)
+	BuildFeed(ctx context.Context, brands []string, categoryIDs []string, outletIDs []string, keyword string) (*feeds.Feed, error)
 }
 
 type Handler struct {
@@ -53,9 +53,10 @@ func (h Handler) HandleGet(c echo.Context) error {
 		return err
 	}
 
+	outletIDs := parseOptionalOutletIDs(c.QueryParam("outletIds"))
 	keyword := c.QueryParam("keyword")
 
-	feed, err := h.generator.BuildFeed(ctx, brands, categoryIDs, keyword)
+	feed, err := h.generator.BuildFeed(ctx, brands, categoryIDs, outletIDs, keyword)
 	if err != nil {
 		return err
 	}
@@ -109,6 +110,10 @@ func parseRequiredCategoryIDs(categoryIDs string) ([]string, error) {
 	}
 
 	return strings.Split(categoryIDs, ","), nil
+}
+
+func parseOptionalOutletIDs(outletIDs string) []string {
+	return strings.Split(outletIDs, ",")
 }
 
 func buildFeedURL(requestURL url.URL) (string, error) {

@@ -103,8 +103,8 @@ func NewGenerator(store string, apiBaseURI string, webBaseURI string) *Generator
 	}
 }
 
-func (g *Generator) BuildFeed(ctx context.Context, brands []string, categoryIDs []string, keyword string) (*feeds.Feed, error) {
-	postings, err := g.fetch(ctx, brands, categoryIDs, keyword)
+func (g *Generator) BuildFeed(ctx context.Context, brands []string, categoryIDs []string, outletIDs []string, keyword string) (*feeds.Feed, error) {
+	postings, err := g.fetch(ctx, brands, categoryIDs, outletIDs, keyword)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (g *Generator) BuildFeed(ctx context.Context, brands []string, categoryIDs 
 			Name:  "grube.fund",
 			Email: "feed@grube.fund",
 		},
-		Subtitle: formatFeedSubtitle(brands, categoryIDs, keyword),
+		Subtitle: formatFeedSubtitle(brands, categoryIDs, outletIDs, keyword),
 		Created:  time.Now(),
 	}
 
@@ -132,12 +132,12 @@ func (g *Generator) BuildFeed(ctx context.Context, brands []string, categoryIDs 
 	return feed, nil
 }
 
-func (g *Generator) fetch(ctx context.Context, brands []string, categoryIDs []string, keyword string) ([]posting, error) {
+func (g *Generator) fetch(ctx context.Context, brands []string, categoryIDs []string, outletIDs []string, keyword string) ([]posting, error) {
 	postings := make([]posting, 0)
 	offset := 0
 	hasMore := true
 	for hasMore {
-		req, err := g.buildRequest(ctx, perPage, offset, brands, categoryIDs, keyword)
+		req, err := g.buildRequest(ctx, perPage, offset, brands, categoryIDs, outletIDs, keyword)
 		if err != nil {
 			return nil, err
 		}
@@ -178,7 +178,7 @@ func (g *Generator) fetch(ctx context.Context, brands []string, categoryIDs []st
 	return postings, nil
 }
 
-func (g *Generator) buildRequest(ctx context.Context, limit int, offset int, brands []string, categoryIDs []string, keyword string) (*http.Request, error) {
+func (g *Generator) buildRequest(ctx context.Context, limit int, offset int, brands []string, categoryIDs []string, outletIDs []string, keyword string) (*http.Request, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, g.apiBaseURI, nil)
 	if err != nil {
 		return nil, err
@@ -187,6 +187,7 @@ func (g *Generator) buildRequest(ctx context.Context, limit int, offset int, bra
 	q := req.URL.Query()
 	q.Add("limit", strconv.Itoa(limit))
 	q.Add("offset", strconv.Itoa(offset))
+	q.Add("outletIds", strings.Join(outletIDs, ","))
 	q.Add("brands", strings.Join(brands, ","))
 	q.Add("categorieIds", strings.Join(categoryIDs, ","))
 	q.Add("text", keyword)
@@ -210,8 +211,11 @@ func formatItemTitle(productName string, price float64, shippingCost float64) st
 	return printer.Sprintf("%s - %.2f€ (Versand: %s)", productName, price, shippingCostStr)
 }
 
-func formatFeedSubtitle(brands []string, categoryIDs []string, keyword string) string {
+func formatFeedSubtitle(brands []string, categoryIDs []string, outletIDs []string, keyword string) string {
 	subtitle := fmt.Sprintf("Marken: %s/Kategorien: %s", strings.Join(brands, ", "), strings.Join(categoryIDs, ", "))
+	if len(outletIDs) > 0 {
+		subtitle += fmt.Sprintf("/Märkte: %s", strings.Join(outletIDs, ", "))
+	}
 	if keyword != "" {
 		subtitle += fmt.Sprintf("/Stichwort: %s", keyword)
 	}
