@@ -3,6 +3,7 @@ package feeds
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
@@ -90,7 +91,7 @@ func (h Handler) HandleGet(c echo.Context) error {
 	}
 
 	c.Response().Header().Set(echo.HeaderContentType, contentType)
-	c.Response().Header().Set(echo.HeaderCacheControl, fmt.Sprintf("max-age=%d, must-revalidate", feedCacheMaxAge))
+	c.Response().Header().Set(echo.HeaderCacheControl, fmt.Sprintf("max-age=%d, must-revalidate", randomMaxAge()))
 	return c.String(http.StatusOK, content)
 }
 
@@ -118,4 +119,13 @@ func buildFeedURL(requestURL url.URL) (string, error) {
 	u = u.JoinPath(requestURL.EscapedPath())
 	u.RawQuery = requestURL.RawQuery
 	return u.String(), nil
+}
+
+// randomMaxAge Calculate a random max age (+/- 15 minutes) to avoid many items expiring in similar intervals
+func randomMaxAge() int {
+	offset := rand.Intn(15*60 + 1)
+	if rand.Intn(2) == 1 {
+		return feedCacheMaxAge - offset
+	}
+	return feedCacheMaxAge + offset
 }
