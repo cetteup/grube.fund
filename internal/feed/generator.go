@@ -47,6 +47,7 @@ func (p posting) BuildWebURL(baseURI string) (string, error) {
 	}
 
 	q := u.Query()
+	q.Add("outletIds", strconv.Itoa(p.Outlet.ID))
 	q.Add("brands", p.Brand.Name)
 	q.Add("categorieIds", p.CategoryID)
 	q.Add("text", strconv.Itoa(p.ProductID))
