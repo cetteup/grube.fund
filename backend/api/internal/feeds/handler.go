@@ -2,6 +2,7 @@ package feeds
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -15,7 +16,8 @@ const (
 	formatAtom = "atom"
 	formatJSON = "json"
 
-	feedBaseURL = "https://api.grube.fund/"
+	feedBaseURL     = "https://api.grube.fund/"
+	feedCacheMaxAge = 60 * 60
 )
 
 type Generator interface {
@@ -88,6 +90,7 @@ func (h Handler) HandleGet(c echo.Context) error {
 	}
 
 	c.Response().Header().Set(echo.HeaderContentType, contentType)
+	c.Response().Header().Set(echo.HeaderCacheControl, fmt.Sprintf("max-age=%d, must-revalidate", feedCacheMaxAge))
 	return c.String(http.StatusOK, content)
 }
 
