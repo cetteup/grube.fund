@@ -75,8 +75,8 @@ func main() {
 		},
 	}))
 
-	e.GET("/feed/saturn/:format", saturnHandler.HandleGet)
-	e.GET("/feed/mediamarkt/:format", mediamarktHandler.HandleGet)
+	e.GET("/feed/v1/saturn/:format", saturnHandler.HandleGet)
+	e.GET("/feed/v1/mediamarkt/:format", mediamarktHandler.HandleGet)
 
 	log.Info().Str("listenAddr", cfg.ListenAddr).Msg("Starting HTTP server")
 	log.Fatal().Err(e.Start(cfg.ListenAddr))
