@@ -13,6 +13,12 @@ import (
 )
 
 const (
+	paramNameFormat      = "format"
+	paramNameBrands      = "brands"
+	paramNameCategoryIDs = "categorieIds"
+	paramNameOutletIDs   = "outletIds"
+	paramNameKeyword     = "text"
+
 	formatRSS  = "rss"
 	formatAtom = "atom"
 	formatJSON = "json"
@@ -38,23 +44,24 @@ func NewHandler(generator Generator) *Handler {
 func (h Handler) HandleGet(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	format := c.Param("format")
+	format := c.Param(paramNameFormat)
 	if format != formatRSS && format != formatAtom && format != formatJSON {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid format")
 	}
 
-	brands, err := parseRequiredBrands(c.QueryParam("brands"))
+	brands, err := parseRequiredBrands(c.QueryParam(paramNameBrands))
 	if err != nil {
 		return err
 	}
 
-	categoryIDs, err := parseRequiredCategoryIDs(c.QueryParam("categoryIds"))
+	// Use "misspelled" category id param name to match params of official website
+	categoryIDs, err := parseRequiredCategoryIDs(c.QueryParam(paramNameCategoryIDs))
 	if err != nil {
 		return err
 	}
 
-	outletIDs := parseOptionalOutletIDs(c.QueryParam("outletIds"))
-	keyword := c.QueryParam("keyword")
+	outletIDs := parseOptionalOutletIDs(c.QueryParam(paramNameOutletIDs))
+	keyword := c.QueryParam(paramNameKeyword)
 
 	feed, err := h.generator.BuildFeed(ctx, brands, categoryIDs, outletIDs, keyword)
 	if err != nil {
@@ -98,7 +105,7 @@ func (h Handler) HandleGet(c echo.Context) error {
 
 func parseRequiredBrands(brands string) ([]string, error) {
 	if brands == "" {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, "No brands given")
+		return nil, echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("%s param is required", paramNameBrands))
 	}
 
 	return strings.Split(brands, ","), nil
@@ -106,7 +113,7 @@ func parseRequiredBrands(brands string) ([]string, error) {
 
 func parseRequiredCategoryIDs(categoryIDs string) ([]string, error) {
 	if categoryIDs == "" {
-		return nil, echo.NewHTTPError(http.StatusBadRequest, "No category ids given")
+		return nil, echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("%s param is required", paramNameCategoryIDs))
 	}
 
 	return strings.Split(categoryIDs, ","), nil
