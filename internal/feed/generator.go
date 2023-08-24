@@ -133,7 +133,7 @@ func (g *Generator) BuildFeed(ctx context.Context, brands []string, categoryIDs 
 }
 
 func (g *Generator) fetch(ctx context.Context, brands []string, categoryIDs []string, outletIDs []string, keyword string) ([]posting, error) {
-	postings := make([]posting, 0)
+	postings := make(map[string]posting)
 	offset := 0
 	hasMore := true
 	for hasMore {
@@ -159,7 +159,7 @@ func (g *Generator) fetch(ctx context.Context, brands []string, categoryIDs []st
 		if resp.StatusCode != http.StatusOK {
 			// API returns 422 when offset exceeds max value (seems to max return 990 postings)
 			if resp.StatusCode == http.StatusUnprocessableEntity {
-				return postings, nil
+				return postingMapToList(postings), nil
 			}
 			return nil, fmt.Errorf("failed to fetch postings, received unexpected status code: %d (%s)", resp.StatusCode, resp.Status)
 		}
@@ -170,12 +170,18 @@ func (g *Generator) fetch(ctx context.Context, brands []string, categoryIDs []st
 			return nil, err
 		}
 
-		postings = append(postings, r.Postings...)
+		// Add new, unique postings
+		for _, p := range r.Postings {
+			if _, exists := postings[p.ID]; !exists {
+				postings[p.ID] = p
+			}
+		}
+
 		hasMore = r.HasMore
 		offset += perPage
 	}
 
-	return postings, nil
+	return postingMapToList(postings), nil
 }
 
 func (g *Generator) buildRequest(ctx context.Context, limit int, offset int, brands []string, categoryIDs []string, outletIDs []string, keyword string) (*http.Request, error) {
@@ -220,4 +226,12 @@ func formatFeedSubtitle(brands []string, categoryIDs []string, outletIDs []strin
 		subtitle += fmt.Sprintf("/Stichwort: %s", keyword)
 	}
 	return subtitle
+}
+
+func postingMapToList(postingMap map[string]posting) []posting {
+	postings := make([]posting, 0, len(postingMap))
+	for _, p := range postingMap {
+		postings = append(postings, p)
+	}
+	return postings
 }
