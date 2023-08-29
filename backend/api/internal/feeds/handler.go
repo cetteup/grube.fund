@@ -65,13 +65,13 @@ func (h Handler) HandleGet(c echo.Context) error {
 
 	feed, err := h.generator.BuildFeed(ctx, brands, categoryIDs, outletIDs, keyword)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 	}
 
 	// Set link to URL of request
 	feedURL, err := buildFeedURL(*c.Request().URL)
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 	}
 	feed.Link = &feeds.Link{Href: feedURL}
 
@@ -80,19 +80,19 @@ func (h Handler) HandleGet(c echo.Context) error {
 		contentType = echo.MIMEApplicationXMLCharsetUTF8
 		content, err = feed.ToRss()
 		if err != nil {
-			return err
+			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 		}
 	} else if format == formatAtom {
 		contentType = echo.MIMEApplicationXML
 		content, err = feed.ToAtom()
 		if err != nil {
-			return err
+			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 		}
 	} else if format == formatJSON {
 		contentType = echo.MIMEApplicationJSON
 		content, err = feed.ToJSON()
 		if err != nil {
-			return err
+			return echo.NewHTTPError(http.StatusInternalServerError).SetInternal(err)
 		}
 	} else {
 		return echo.NewHTTPError(http.StatusNotFound)
