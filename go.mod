@@ -3,9 +3,10 @@ module github.com/cetteup/grube.fund
 go 1.20
 
 require (
-	github.com/gorilla/feeds v1.1.1
+	github.com/gorilla/feeds v1.1.2
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/rs/zerolog v1.30.0
+	golang.org/x/text v0.11.0
 )
 
 require (
@@ -19,6 +20,5 @@ require (
 	golang.org/x/crypto v0.11.0 // indirect
 	golang.org/x/net v0.12.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
-	golang.org/x/text v0.11.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 )
